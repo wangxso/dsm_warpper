@@ -52,7 +52,7 @@ API_ERROR_MAP = {
     1403: 'Wrong password.',
     1404: 'Failed to get the file and dir list in an archive.',
     1405: 'Failed to find the item ID in an archive file.'
-
+    
 }
 
 def handle_login_error(code):
