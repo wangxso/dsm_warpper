@@ -2,7 +2,7 @@ from main import session
 from utils import build_req_url
 from errors import handle_filestation_error
 import os
-
+from loguru import logger
 cgi = 'entry.cgi'
 version = 2
 
@@ -434,4 +434,89 @@ def FileCompressStop(task_id):
     uri = build_req_url(cgi, api, version, method, ext)
     resp = session.get(uri)
     return resp.json()
+
+'''
+SYNO.FileStation.BackgroundTask
+
+Get information regarding tasks of file operations which is run as the background process including copy, move,
+delete, compress and extract tasks with non-blocking API/methods. You can use the status method to get more
+information, or use the stop method to cancel these background tasks in individual API, such as
+SYNO.FileStation.CopyMove API, SYNO.FileStation.Delete API, SYNO.FileStation.Extract API and
+SYNO.FileStation.Compress API.
+
+Availability: Since DSM 6.0
+Version: 3
+'''
+
+'''
+List
+
+
+Returns:
+{
+    "tasks": [
+    {
+        "api": "SYNO.FileStation.CopyMove",
+        "crtime": 1372926088,
+        "finished": true,
+        "method": "start",
+        "params": {
+        "accurate_progress": true,
+        "dest_folder_path": "/video/test",
+        "overwrite": true,
+        "path": [
+        "/video/test2/test.avi"
+        ],
+        "remove_src": false
+        },
+        "path": "/video/test2/test.avi",
+        "processed_size": 12800,
+        "processing_path": "/video/test2/test.avi",
+        "progress": 1,
+        "taskid": "FileStation_51D53088860DD653",
+        "total": 12800,
+        "version": 1
+    },
+        ....
+    ],
+    "offset": 0,
+    "total": 4
+ }
+'''
+
+def BackgroundTaskList(offset=0, limit=0, sort_by='crtime', sort_direction='asc', api_filter=None):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.BackgroundTask'
+    version = 3
+    method = 'list'
+    ext = {
+        "offset": offset,
+        'limit': limit,
+        'sort_by': sort_by,
+        'sort_direction': sort_direction,
+        'api_filter': api_filter
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+
+Returns:
+No specific response. It returns an empty success response if completed without error.
+'''
+def BackgroundTaskClearFinished(taskid_list):
+    taskids = f'[{",".join(taskid_list)}]'
+    logger.info(f'taskid_list {taskid_list} to taskids string as {taskids}')
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.BackgroundTask'
+    version = 3
+    method = 'clear_finished'
+    ext = {
+        "taskid": taskids
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
 

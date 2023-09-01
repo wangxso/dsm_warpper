@@ -47,7 +47,9 @@ pip install -r requirements.txt
   - [x] SYNO.FileStation.Compress (Compress files/folders.)
     - [x] Simple Compleate
     - [ ] Complex logic
-  - [ ] SYNO.FileStation.BackgroundTask(Get information regarding tasks of file operations which are run as the background process including copy, move, delete, compress and extract tasks or perform operations
+  - [x] SYNO.FileStation.BackgroundTask(Get information regarding tasks of file operations which are run as the background process including copy, move, delete, compress and extract tasks or perform operations
+    - [x] List
+    - [x] Clear Finished Task
 on these background tasks.)
 - [ ] User API
   - [x] SYNO.API.Auth(Login)
