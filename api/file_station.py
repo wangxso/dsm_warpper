@@ -1,7 +1,7 @@
-from main import session, sid
+from main import session
 from utils import build_req_url
+from errors import handle_filestation_error
 import os
-from config import SID
 
 cgi = 'entry.cgi'
 version = 2
@@ -45,11 +45,9 @@ def CreateFolder(folder_path, folder_name, force_parent="", additional=""):
     if additional:
         ext["additional"] = additional
     
-    ext["_sid"] = SID
     uri = build_req_url(cgi=cgi, api=api, version=version, ext=ext, method=method)
-    print(uri)
     resp = session.get(uri)
-    print(resp.json())
+    return resp.json()
 
 '''
 RenameFileorFolder, Rename a file/folder.
@@ -88,10 +86,7 @@ Returns:
 def RenameFileorFolder(path, name, additional="", search_taskid=""):
     api = 'SYNO.FileStation.Rename'
     method = 'rename'
-    ext = {
-        "_sid": SID,
-    }
-
+    ext = {}
     if path:
         ext["path"] = path
     else:
@@ -111,13 +106,82 @@ def RenameFileorFolder(path, name, additional="", search_taskid=""):
     resp = session.get(uri)
     return resp.json()
 
+'''
+Delete file(s)/folder(s).
+This is a non-blocking method. You should poll a request with status method to get more information or make a
+request with stop method to cancel the operation.
 
+'''
+
+def NoneBlockingDeleteFolderOrFiles(path, accurate_progress='false', recursive='true', search_taskid=''):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Delete'
+    method = 'start'
+    ext = {
+        'path': path,
+        'accurate_progress': accurate_progress,
+        'recursive': recursive,
+        'search_taskid': search_taskid
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+Get the deleting status.
+
+Returns:
+{
+    "finished": false,
+    "path": "/video/1000",
+    "processed_num": 193,
+    "processing_path": "/video/1000/509",
+    "progress": 0.03199071809649467,
+    "total": 6033
+}
+'''
+def GetDeleteStatus(task_id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Delete'
+    method = 'status'
+    ext = {
+        'taskid': task_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+
+def StopDelete(task_id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Delete'
+    method = 'stop'
+    ext = {
+        'taskid': task_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def DeleteFolderOrFiles(path, recursive='true', search_taskid=''):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Delete'
+    version = 1
+    method = 'delete'
+    ext = {
+        'path': path,
+        'recursive': recursive,
+        'search_taskid': search_taskid
+    }
+    uri = build_req_url(cgi, api, version,  method, ext)
+    resp = session.get(uri)
+    return resp.json()
 
 def FolderList():
     api = 'SYNO.FileStation.List'
     method = 'list_share'
     # ext like offset(int), limit(int), sort_by(name, user,group, mtime,atime, ctime,crtime or posix)
-    ext = {"_sid": SID}
+    ext = {}
     req_url = build_req_url(cgi, api, version, method, ext)
     resp = session.get(req_url)
     return resp.json()
@@ -125,7 +189,7 @@ def FolderList():
 def FileList():
     api = 'SYNO.FileStation.List'
     method = 'list'
-    ext = {"folder_path": "/Download", "additional": '["real_path","size", "type"]', "_sid": SID}
+    ext = {"folder_path": "/Download", "additional": '["real_path","size", "type"]'} # , "_sid": SID
     req_url = build_req_url(cgi, api, version, method, ext)
     resp = session.get(req_url)
     return resp.json()
@@ -143,7 +207,7 @@ def FileUpload(file_path, target):
         }
 
         ext = {
-            "_sid": SID
+            # "_sid": SID
         }
 
         files = {'file': (filename, f, 'application/octet-stream')}
@@ -155,16 +219,219 @@ def FileDownload(path):
     filename = os.path.split(path)[-1]
     api = 'SYNO.FileStation.Download'
     method = 'download'
-    ext = {"path": path, "_sid": SID}
+    ext = {"path": path,} #  "_sid": SID
     req_url = build_req_url(cgi, api, version, method, ext)
     resp = session.get(req_url)
+    if not resp:
+        return {"success": False}
     with open(filename, "wb") as f:
         f.write(resp.content)
+    return {"success": True}
+
 
 def FileInfo():
     api = 'SYNO.FileStation.Info'
     method = 'get'
-    ext = {"_sid": SID}
+    ext = {} # "_sid": SID
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri).json()
+    if not resp['success']:
+        if 'error' in resp:
+            resp = handle_filestation_error(resp['error']['code'])
+        elif 'errors' in resp:
+            resp = handle_filestation_error(resp['errors']['code'])
+    return resp
+
+
+'''
+Extract an archive and perform operations on archive files.
+Note: Supported extensions of archives: zip, gz, tar, tgz, tbz, bz2, rar, 7z, iso.
+
+
+Returns:
+{
+ "taskid": "FileStation_51CBB59C68EFE6A3"
+}
+'''
+
+def FileExtractStart(file_path, dest_folder_path, overwrite='false', keep_dir='true', create_subfolder='false', codepage='chs', password='', item_id=''):
+    api = 'entry.cgi'
+    api = 'SYNO.FileStation.Extract'
+    version = 2
+    method = 'start'
+    ext = {
+        'file_path': file_path,
+        'dest_folder_path': dest_folder_path,
+        'overwrite': overwrite,
+        'keep_dir': keep_dir,
+        'create_subfolder': create_subfolder,
+        'codepage': codepage,
+        'password': password,
+        'item_id': item_id
+    }
     uri = build_req_url(cgi, api, version, method, ext)
     resp = session.get(uri)
     return resp.json()
+
+'''
+Get the extract task status.
+
+
+Returns:
+{
+ "dest_folder_path": "/download/download",
+ "finished": false,
+ "progress": 0.1
+}
+'''
+def FileExtractStatus(task_id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Extract'
+    version = 2
+    method = 'status'
+    ext = {
+        "taskid": task_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+
+
+'''
+Stop the extract task.
+
+Returns:
+No specific response. It returns an empty success response if completed without error
+'''
+def FileExtractStop(task_id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Extract'
+    version = 2
+    method = 'stop'
+    ext = {
+        "taskid": task_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+List archived files contained in an archive.
+
+Returns:
+{
+    "items": [
+            {
+                "is_dir": false,
+                "item_id": 1,
+                "mtime": "2013-02-03 00:17:12",
+                "name": "ITEMA_20445972-0.mp3",
+                "pack_size": 51298633,
+                "path": "ITEMA_20445972-0.mp3",
+                "size": 51726464
+            },
+            {
+                "is_dir": false,
+                "item_id": 0,
+                "mtime": "2013-03-03 00:18:12",
+                "name": "ITEMA_20455319-0.mp3",
+                "pack_size": 51434239,
+                "path": "ITEMA_20455319-0.mp3",
+                "size": 51896448
+            }
+        ],
+    "total":2
+}
+'''
+def FileArchiveFilesList(file_path, offset=0, limit=-1, sort_by='name', sort_direction='asc', codepage='chs', password=None, item_id=None):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Extract'
+    version = 2
+    method = 'list'
+    ext = {
+        'file_path': file_path,
+        'offset': offset,
+        'limit': limit,
+        'sort_by': sort_by,
+        'sort_direction': sort_direction,
+        'codepage': codepage,
+        'password': password,
+        'item_id': item_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+Compress file(s)/folder(s).
+This is a non-blocking API. You need to start to compress files with the start method. Then, you should poll
+requests with the status method to get compress status, or make a request with the stop method to cancel
+the operation.
+
+1. Start to compress file(s)/folder(s).
+
+Returns:
+{
+ "taskid": "FileStation_51CBB25CC31961FD"
+}
+'''
+
+def FileCompressStart(path, dest_file_path, level='moderate', mode='add', format='zip', password=None):
+    gi = 'entry.cgi'
+    api = 'SYNO.FileStation.Compress'
+    version = 3 
+    method = 'start'
+    ext = {
+        'path': path,
+        'dest_file_path': dest_file_path,
+        'level': level,
+        'mode': mode,
+        'format': format,
+        'password': password,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+2. Get the compress task status.
+
+
+Returns:
+{
+ "dest_file_path": "/download/download.zip",
+ "finished": true
+}
+'''
+def FileCompressStatus(task_id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Compress'
+    version = 3
+    method = 'status'
+    ext = {
+        "taskid": task_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+Stop the compress task.
+
+Returns:
+No specific response. It returns an empty success response if completed without error.
+'''
+
+def FileCompressStop(task_id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Compress'
+    version = 1
+    method = 'stop'
+    ext = {
+        "taskid": task_id
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+

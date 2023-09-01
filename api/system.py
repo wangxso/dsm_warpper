@@ -1,24 +1,54 @@
-import os
-from config import BASE_URL, USRNAME, PASSWORD, SID
+from config import BASE_URL
 from utils import build_req_url
 from main import session
+from errors import handle_login_error
 
 # Get All API Info
 def get_all_api():
-    
-    resp = session.get(f"{BASE_URL}/query.cgi?api=SYNO.API.Info&version=1&method=query&query=all")
+    cgi = 'query.cgi'
+    api = 'SYNO.API.Info'
+    method = 'query'
+    version = 1
+    ext = {"query": "all"}
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
     return resp.json()
 
-# Login and get the sid
-def DSMLogin(username, password):
-    resp = session.get(f"{BASE_URL}/entry.cgi?api=SYNO.API.Auth&version=7&method=login&account={username}&passwd={password}&session=FileStation&format=sid")
+# Login and get the sid, The applied sid will expire after 7 days by default.
+def DSMLogin(username, password, ss = "FileStation", format = "sid"):
+    cgi = 'auth.cgi'
+    api = 'SYNO.API.Auth'
+    version = 3
+    method = 'login'
+    ext = {
+        "account": username,
+        "passwd": password,
+        "session": ss,
+        "format": format
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
     resp = resp.json()
-    session.params = {"_sid": resp['data']['sid']}
-    return resp
+    if not resp['success']:
+        code = resp['error']['code']
+        return handle_login_error(code)
+    else:
+        session.params = {"_sid": resp['data']['sid']}
+        return resp
 
 # Logout
-def DSMLogout():
-    resp = session.get(f"{BASE_URL}/auth.cgi?api=SYNO.API.Auth&version=7&method=logout&session=FileStation&{session.cookies}")
+def DSMLogout(session="FileStation"):
+    cgi = 'auth.cgi'
+    api = 'SYNO.API.Auth'
+    version = 1
+    method = 'logout'
+    ext = {
+        "session": session
+    }
+
+    uri = build_req_url(cgi, api, version, method, ext)
+
+    resp = session.get(uri)
     return resp.json()
 
 # Get System Info
@@ -28,7 +58,7 @@ def DSMInfo():
 
 # Get System Utilizations
 def DSMStatus():
-    resp = session.get(f"{BASE_URL}/entry.cgi?api=SYNO.Core.System.Utilization&method=get&version=1&_sid={SID}")
+    resp = session.get(f"{BASE_URL}/entry.cgi?api=SYNO.Core.System.Utilization&method=get&version=1")
     return resp.json()
 
 # Get Network Configration

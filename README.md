@@ -21,9 +21,10 @@ pip install -r requirements.txt
 ## Todo List
 - [ ] Build Uniform Requester
 - [ ] Buid Warpper API using Flask
-- [ ] FileStation API(From FileSatation API Doc version 2023.03)
-  - [ ] SYNO.FileStation.Info (Provide File Station info)
-  - [ ] SYNO.FileStation.List (List all shared folders, enumerate files in a shared folder,and get detailed file information.)
+- [ ] Build Unit Tests
+- [x] FileStation API(From FileSatation API Doc version 2023.03)
+  - [x] SYNO.FileStation.Info (Provide File Station info)
+  - [x] SYNO.FileStation.List (List all shared folders, enumerate files in a shared folder,and get detailed file information.)
   - [ ] SYNO.FileStation.Search (Search files on given criteria.)
   - [ ] SYNO.FileStation.VirtualFolder（List all mount point folders of virtual file system, e.g., CIFSor ISO.）
   - [ ] SYNO.FileStation.Favorite (Add a folder to user's favorites or perform operations on user's favorites.)
@@ -37,9 +38,15 @@ pip install -r requirements.txt
   - [x] SYNO.FileStation.CreateFolder 
   - [x] SYNO.FileStation.Rename (Rename a file/folder.)
   - [ ] SYNO.FileStation.CopyMove (Copy/Move files/folders.)
-  - [ ] SYNO.FileStation.Delete (Delete files/folders.)
-  - [ ] SYNO.FileStation.Extract (Extract an archive and perform operations on an archive.)
-  - [ ] SYNO.FileStation.Compress (Compress files/folders.)
+  - [x] SYNO.FileStation.Delete (Delete files/folders.)
+    - [x] Blocking Delete
+    - [x] Non-Blocking Delete
+  - [x] SYNO.FileStation.Extract (Extract an archive and perform operations on an archive.)
+    - [x] Simple Compleate
+    - [ ] Complex logic
+  - [x] SYNO.FileStation.Compress (Compress files/folders.)
+    - [x] Simple Compleate
+    - [ ] Complex logic
   - [ ] SYNO.FileStation.BackgroundTask(Get information regarding tasks of file operations which are run as the background process including copy, move, delete, compress and extract tasks or perform operations
 on these background tasks.)
 - [ ] User API
