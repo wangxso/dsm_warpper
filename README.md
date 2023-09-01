@@ -58,4 +58,5 @@ on these background tasks.)
   - [x] DSMNetwork(Get dsm network infomation)
   - [x] DSMService(Get enable service info)
   - [x] DSMTerminal(Set DSM Terminal Setting)
+  - [ ] Others.
 - [ ] Download Station API(Synology_Download Station Official API_20140326)

@@ -34,5 +34,6 @@ class FileStationTest(unittest.TestCase):
     def test_FolderList(self):
         res = file_station.FolderList()
         self.assertTrue(res['success'])
+    
 if __name__ == "__main__":
     unittest.main()
