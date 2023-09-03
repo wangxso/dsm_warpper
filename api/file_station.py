@@ -186,10 +186,10 @@ def FolderList():
     resp = session.get(req_url)
     return resp.json()
 
-def FileList():
+def FileList(path, addtional=""):
     api = 'SYNO.FileStation.List'
     method = 'list'
-    ext = {"folder_path": "/Download", "additional": '["real_path","size", "type"]'} # , "_sid": SID
+    ext = {"folder_path": path, "additional": addtional} # , "_sid": SID
     req_url = build_req_url(cgi, api, version, method, ext)
     resp = session.get(req_url)
     return resp.json()
