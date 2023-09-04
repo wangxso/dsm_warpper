@@ -508,3 +508,479 @@ def BackgroundTaskClearFinished(taskid_list):
     return resp.json()
 
 
+'''
+@Todo List
+
+SYNO.FileStation.Search
+Search files according to given criteria.
+This is a non-blocking API. You need to start to search files with the start method. Then, you should poll
+requests with list method to get more information, or make a request with the stop method to cancel the
+operation. Otherwise, search results are stored in a search temporary database so you need to call clean
+method to delete it at the end of operation.
+1. start 2.list 3.stop 4.clean
+'''
+
+def FileSearchStart(folder_path, recursive='true', pattern = None, extension= None, 
+                    filetype='all', size_from=None, size_to=None, mtime_from=None, 
+                    mtime_to=None, crtime_from=None, crtime_to=None, atime_from=None, 
+                    atime_to=None, owner='', group=''):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Search'
+    version = 2
+    method = 'start'
+    ext = {
+        'folder_path': folder_path,
+        'recursive': recursive,
+        'pattern': pattern,
+        'extension': extension,
+        'filetype': filetype,
+        'size_from': size_from,
+        'size_to': size_to,
+        'mtime_from': mtime_from,
+        'mtime_to': mtime_to,
+        'crtime_from': crtime_from,
+        'crtime_to': crtime_to,
+        'atime_from': atime_from,
+        'atime_to': atime_to,
+        'owner': owner,
+        'group': group
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FileSearchList(taskid, offset=0, limit=0, sorted_by='name', sort_direction='asc', pattern='', filetype='all', additional=''):
+    cgi = 'entry.cgi'
+    api = '=SYNO.FileStation.Search'
+    version = 2
+    method = 'list'
+    ext = {
+        'taskid': taskid,
+        'offset': offset,
+        'limit': limit,
+        'sorted_by': sorted_by,
+        'sort_direction': sort_direction,
+        'pattern': pattern,
+        'filetype': filetype,
+        'additional': additional
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FileSearchStop(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Search'
+    version = 1
+    method = 'stop'
+    ext = {
+        'taskid': taskid
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FileSearchClean(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Search'
+    version = 1
+    method = 'clean'
+    ext = {
+        'taskid': taskid
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+
+
+'''
+SYNO.FileStation.VirtualFolder
+List all mount point folders of virtual file system, e.g., CIFS or ISO.
+1.list 
+param:
+type A type of virtual file systems,
+e.g., NFS, CIFS or ISO. Nfs, cifs or iso
+'''
+def VirtualFolderList(type, offset=0, limit=0, sort_by='name', sort_direction='asc', additional=''):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.VirtualFolder'
+    version = 2
+    method = 'list'
+    ext ={
+        'type': type,
+        'offset': offset,
+        'limit': limit,
+        'sort_by': sort_by,
+        'sort_direction': sort_direction,
+        'additional': additional
+    }
+
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+
+
+'''
+SYNO.FileStation.Favorite
+Add a folder to user's favorites or perform operations on user's favorites.
+
+1.list 2.add 3.delete 4.clear_broken 5.replace_all
+'''
+
+def FileFavoriteList(offset=0, limit=0, status_filter='all', additional=''):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Favorite'
+    version = 1
+    method = 'list'
+    ext = {
+        'offset': offset,
+        'limit': limit,
+        'status_filter': status_filter,
+        'additional': additional
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FileFavoriteAdd(path, name, index=-1):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Favorite'
+    version = 2
+    method = 'add'
+    ext = {
+        'path': path,
+        'name': name,
+        'index': index
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FileFavoriteDelete(path):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Favorite'
+    version = 2
+    method = 'delete'
+    ext = {
+        'path': path
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FileFavoriteClearBroken():
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Favorite'
+    version = 2
+    method = 'clear_broken'
+    uri = build_req_url(cgi, api, version, method, {})
+    resp = session.get(uri)
+    return resp.json()
+
+def FileFavoriteEdit(path, name):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Favorite'
+    version = 2
+    method = 'edit'
+    ext = {
+        'path': path,
+        'name': name
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def FIleFavoriteReplaceAll(path, name):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Favorite'
+    version = 2
+    method = 'replace_all'
+    ext = {
+        'path': path,
+        'name': name
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+
+
+
+'''
+SYNO.FileStation.Thumb
+Get a thumbnail of a file.
+Note:
+1. Supported image formats: jpg, jpeg, jpe, bmp, png, tif, tiff, gif, arw, srf, sr2, dcr, k25, kdc, cr2, crw, nef, mrw,
+ptx, pef, raf, 3fr, erf, mef, mos, orf, rw2, dng, x3f, heic, raw.
+2. Supported video formats in an indexed folder: 3gp, 3g2, asf, dat, divx, dvr-ms, m2t, m2ts, m4v, mkv, mp4,
+mts, mov, qt, tp, trp, ts, vob, wmv, xvid, ac3, amr, rm, rmvb, ifo, mpeg, mpg, mpe, m1v, m2v, mpeg1, mpeg2,
+mpeg4, ogv, webm, flv, f4v, avi, swf, vdr, iso, hevc.
+3. Video thumbnails exist only if video files are placed in the "photo" shared folder or users' home folders.
+methods:
+1.get
+
+rotate
+Optional. Return rotated
+thumbnail.
+Rotate Options:
+0: Do not rotate.
+1: Rotate 90°.
+2: Rotate 180°.
+3: Rotate 270°.
+4: Rotate 360°.
+'''
+
+def FileThumbGet(path, size='small', rotate=0):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Thumb'
+    version = 2
+    method = 'get'
+    ext = {
+        'path': path,
+        'size': size,
+        'rotate': rotate
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+'''
+SYNO.FileStation.DirSize
+
+Get the accumulated size of files/folders within folder(s).
+This is a non-blocking API. You need to start it with the start method. Then, you should poll requests with the
+status method to get progress status or make a request with stop method to cancel the operation.
+
+methods:
+1.start 2.status 3.stop
+'''
+def DirSizeStart(path):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.DirSize'
+    version = 2
+    method = 'start'
+    ext = {
+        'path': path,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def DirSizeStatus(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.DirSize'
+    version = 2
+    method = 'status'
+    ext = {
+        'taskid': taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def DirSizeStop(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.DirSize'
+    version = 2
+    method = 'stop'
+    ext = {
+        'taskid': taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+SYNO.FileStation.MD5
+Get MD5 of a file.
+This is a non-blocking API. You need to start it with the start method. Then, you should poll requests with
+status method to get the progress status, or make a request with the stop method to cancel the operation.
+
+methods:
+1.start 2.status 3.stop
+'''
+def GetMD5TaskStart(file_path):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.MD5'
+    version = 2
+    method = 'start'
+    ext = {
+        'file_path': file_path,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def GetMD5TaskStatus(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.MD5'
+    version = 2
+    method = 'status'
+    ext = {
+        'taskid': taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def GetMD5TaskStop(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.MD5'
+    version = 2
+    method = 'stop'
+    ext = {
+        'taskid': taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+SYNO.FileStation.CheckPermission
+
+Check if a logged-in user has permission to do file operations on a given folder/file.
+
+methods:
+1.write 
+'''
+def CheckWritePermission(path, filename, overwrite=None, create_only='true'):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.CheckPermission'
+    version = 2
+    method = 'write'
+    ext = {
+        'path': path,
+        'filename': filename,
+        'overwrite': overwrite,
+        'create_only': create_only
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+'''
+SYNO.FileStation.Sharing
+Generate a sharing link to share files/folders with other people and perform operations on sharing link(s).
+1.getinfo 2.list 3.create 4.delete 5.clear_invalid 6.edit
+'''
+
+
+# Get information of a sharing link by the sharing link ID.
+def GetSharedInfo(id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Sharing'
+    version = 3
+    method = 'getinfo'
+    ext = {
+        'path': id,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def SharedList(offset, limit, sort_by, sort_direction, force_clean):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Sharing'
+    version = 3
+    method = 'list'
+    ext = {
+        'offset': offset,
+        'limit': limit,
+        'sort_by': sort_by,
+        'sort_direction': sort_direction,
+        'force_clean': force_clean
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def CreateSharedLink(path, password, data_expired, data_available):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Sharing'
+    version = 3
+    method = 'create'
+    ext = {
+        'path': path,
+        'password': password,
+        'data_expired': data_expired,
+        'data_available': data_available,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def DeleteSharedLink(id):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Sharing'
+    version = 3
+    method = 'delete'
+    ext = {
+        'path': id,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def ClearInvalid():
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.Sharing'
+    version = 3
+    method = 'clear_invalid'
+    ext = {}
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+
+'''
+SYNO.FileStation.CopyMove
+Copy/move file(s)/folder(s).
+This is a non-blocking API. You need to start to copy/move files with start method. Then, you should poll
+requests with status method to get the progress status, or make a request with stop method to cancel the
+operation.
+
+1.start 2.status 3.stop
+
+'''
+
+def CopyMoveTaskStart(path, dest_folder_path, overwrite=None, remove_src='false', accurate_progress='true', search_taskid=None):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.CopyMove'
+    version = 3
+    method = 'start'
+    ext = {
+        'path': path,
+        'dest_folder_path': dest_folder_path,
+        'overwrite': overwrite,
+        'remove_src': remove_src,
+        'accurate_progress': accurate_progress,
+        'search_taskid': search_taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def CopyMoveTaskStatus(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.CopyMove'
+    version = 3
+    method = 'status'
+    ext = {
+        'taskid': taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
+
+def CopyMoveTaskStop(taskid):
+    cgi = 'entry.cgi'
+    api = 'SYNO.FileStation.CopyMove'
+    version = 3
+    method = 'sop'
+    ext = {
+        'taskid': taskid,
+    }
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.get(uri)
+    return resp.json()
