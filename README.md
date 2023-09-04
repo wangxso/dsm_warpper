@@ -19,8 +19,8 @@ pip install -r requirements.txt
 
 
 ## Todo List
-- [ ] Build Uniform Requester
-- [ ] Buid Warpper API using Flask
+- [x] Build Uniform Requester
+- [x] Buid Warpper API using Flask
 - [ ] Build Unit Tests
 - [x] FileStation API(From FileSatation API Doc version 2023.03)
   - [x] SYNO.FileStation.Info (Provide File Station info)

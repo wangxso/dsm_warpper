@@ -1,7 +1,9 @@
 from config import BASE_URL
 from utils import build_req_url
-from main import session
+from entities.session import session
 from errors import handle_login_error
+import os
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Get All API Info
 def get_all_api():
@@ -34,6 +36,8 @@ def DSMLogin(username, password, ss = "FileStation", format = "sid"):
         return handle_login_error(code)
     else:
         session.params = {"_sid": resp['data']['sid']}
+        with open(root_dir+ os.path.sep +'._sid', 'w') as f:
+            f.write(resp['data']['sid'])
         return resp
 
 # Logout

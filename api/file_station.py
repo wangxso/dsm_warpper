@@ -1,8 +1,7 @@
-from main import session
 from utils import build_req_url
 from errors import handle_filestation_error
-import os
 from loguru import logger
+from entities.session import session
 cgi = 'entry.cgi'
 version = 2
 
@@ -189,50 +188,39 @@ def FolderList():
 def FileList(path, addtional=""):
     api = 'SYNO.FileStation.List'
     method = 'list'
-    ext = {"folder_path": path, "additional": addtional} # , "_sid": SID
+    ext = {"folder_path": path, "additional": addtional}
     req_url = build_req_url(cgi, api, version, method, ext)
     resp = session.get(req_url)
     return resp.json()
 
-def FileUpload(file_path, target):
-    filename = os.path.split(file_path)[-1]
+def FileUpload(target, files):
     api = 'SYNO.FileStation.Upload'
     method = 'upload'
+    args = {
+        'path': target,
+        'create_parents': 'true',
+        'overwrite': 'true'
+    }
 
-    with open(file_path, 'rb') as f:
-        args = {
-            'path': target,
-            'create_parents': 'true',
-            'overwrite': 'true'
-        }
+    ext = {}
 
-        ext = {
-            # "_sid": SID
-        }
-
-        files = {'file': (filename, f, 'application/octet-stream')}
-        uri = build_req_url(cgi, api, version, method, ext)
-        resp = session.post(uri, data=args, files=files, verify=True)
-        return resp.json()
+    uri = build_req_url(cgi, api, version, method, ext)
+    resp = session.post(uri, data=args, files=files, verify=True)
+    return resp.json()
 
 def FileDownload(path):
-    filename = os.path.split(path)[-1]
     api = 'SYNO.FileStation.Download'
     method = 'download'
-    ext = {"path": path,} #  "_sid": SID
+    ext = {"path": path}
     req_url = build_req_url(cgi, api, version, method, ext)
     resp = session.get(req_url)
-    if not resp:
-        return {"success": False}
-    with open(filename, "wb") as f:
-        f.write(resp.content)
-    return {"success": True}
+    return resp
 
 
 def FileInfo():
     api = 'SYNO.FileStation.Info'
     method = 'get'
-    ext = {} # "_sid": SID
+    ext = {}
     uri = build_req_url(cgi, api, version, method, ext)
     resp = session.get(uri).json()
     if not resp['success']:
@@ -346,7 +334,7 @@ Returns:
 '''
 def FileArchiveFilesList(file_path, offset=0, limit=-1, sort_by='name', sort_direction='asc', codepage='chs', password=None, item_id=None):
     cgi = 'entry.cgi'
-    api = 'SYNO.FileStation.Extract'
+    api = '/SYNO.FileStation.Extract'
     version = 2
     method = 'list'
     ext = {
@@ -378,7 +366,7 @@ Returns:
 '''
 
 def FileCompressStart(path, dest_file_path, level='moderate', mode='add', format='zip', password=None):
-    gi = 'entry.cgi'
+    cgi = 'entry.cgi'
     api = 'SYNO.FileStation.Compress'
     version = 3 
     method = 'start'
