@@ -62,3 +62,8 @@ on these background tasks.)
   - [x] DSMTerminal(Set DSM Terminal Setting)
   - [ ] Others.
 - [ ] Download Station API(Synology_Download Station Official API_20140326)
+
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=wangxso/dsm_warpper&type=Date)](https://star-history.com/#wangxso/dsm_warpper&Date)

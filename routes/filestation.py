@@ -1,6 +1,6 @@
 from flask import request, Blueprint
 from api import file_station
-from entities.response import std_resp
+from entities.response import std_resp, std_error
 fs_bp = Blueprint('fs', __name__)
 
 @fs_bp.route("/fs/create", methods=['POST'])
@@ -177,3 +177,185 @@ def background_task_clear_finished():
     data = request.get_json()
     taskid_list = data['taskid_list']
     return std_resp(data=file_station.BackgroundTaskClearFinished(taskid_list))
+
+@fs_bp.route('/fs/search/start')
+def file_search_start():
+    folder_path = request.form.get('folder_path')
+    recursive = request.form.get('recursive')
+    pattern = request.form.get('pattern')
+    extension = request.form.get('extension')
+    filetype = request.form.get('filetype')
+    size_from = request.form.get('size_from')
+    size_to = request.form.get('size_to')
+    mtime_from = request.form.get('mtime_from')
+    mtime_to = request.form.get('mtime_to')
+    crtime_from = request.form.get('crtime_from')
+    crtime_to = request.form.get('crtime_to')
+    atime_from = request.form.get('atime_from')
+    atime_to = request.form.get('atime_to')
+    owner = request.form.get('owner')
+    group = request.form.get('group')
+    resp = file_station.FileSearchStart(folder_path, recursive, pattern, extension, filetype, 
+                                        size_from, size_to, mtime_from, mtime_to, crtime_from, 
+                                        crtime_to, atime_from, atime_to, owner, group)
+    
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/search/list')
+def file_search_list():
+    taskid = request.form.get('taskid', '')
+    offset = request.form.get('offset', 0)
+    limit = request.form.get('limit', 0)
+    sorted_by = request.form.get('sorted_by', 'name')
+    sort_direction = request.form.get('sort_direction', 'asc')
+    pattern = request.form.get('pattern', '')
+    filetype = request.form.get('filetype', 'all')
+    additional = request.form.get('additional', '')
+    resp = file_station.FileSearchList(taskid, offset, limit, sorted_by, 
+                                       sort_direction, pattern, filetype, additional)
+    return std_resp(data=resp)
+
+
+@fs_bp.route('/fs/search/stop/<taskid>')
+def file_search_stop(taskid):
+    if taskid == '':
+        return std_error({'errors': 'Task id is Needed.'})
+    resp = file_station.FileSearchStop(taskid)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/search/clean/<taskid>')
+def file_search_clean(taskid):
+    if taskid == '':
+        return std_error({'errors': 'Task id is Needed.'})
+    resp = file_station.FileSearchClean(taskid)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/virtual/list')
+def file_virtual_list():
+    type = request.form.get('type')
+    offset = request.form.get('offset', 0)
+    limit = request.form.get('limit', 0)
+    sort_by = request.form.get('sort_by', 'name')
+    sort_direction = request.form.get('sort_direction', 'asc')
+    additional= request.form.get('additional', '')
+    resp = file_station.VirtualFolderList(type, offset, limit, sort_by, sort_direction, additional)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/favorite/list')
+def file_favorite_list():
+    offset = request.form.get('offset', 0)
+    limit = request.form.get('limit', 0)
+    status_filter = request.form.get('status_filter', 'all')
+    additional = request.form.get('additional', '')
+    resp = file_station.FileFavoriteList(offset, limit, status_filter, additional)
+    return std_resp(data=resp)
+
+
+@fs_bp.route('/fs/favorite/add')
+def file_favorite_add():
+    path = request.form.get('path', '')
+    name = request.form.get('name', '')
+    index = request.form.get('index' -1)
+    resp = file_station.FileFavoriteAdd(path, name, index)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/favorite/delete')
+def file_favorite_delete():
+    path = request.form.get('path', '')
+    resp = file_station.FileFavoriteDelete(path)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/favorite/clean')
+def file_favorite_clean():
+    resp = file_station.FileFavoriteClearBroken()
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/favorite/edit')
+def file_favorite_edit():
+    path = request.form.get('path', '')
+    name = request.form.get('name', '')
+
+    resp = file_station.FileFavoriteEdit(path, name)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/favorite/replaceall')
+def file_favorite_replace_all():
+    path = request.form.get('path', '')
+    name = request.form.get('name', '')
+
+    resp = file_station.FileFavoriteReplaceAll(path, name)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/thumb/get')
+def file_thumb_get():
+    path = request.form.get('path', '')
+    size = request.form.get('size', 'small')
+    rotate = request.form.get('rotate', 0)
+
+    resp = file_station.FileThumbGet(path, size, rotate)
+    return std_resp(data=resp)
+
+@fs_bp.route('/fs/dirsize/start')
+def file_dirsize_start():
+    pass
+
+
+@fs_bp.route('/fs/dirsize/status')
+def file_dirsize_status():
+    pass
+
+@fs_bp.route('/fs/dirsize/stop')
+def file_dirsize_stop():
+    pass
+
+@fs_bp.route('/fs/md5/start')
+def  file_md5_start():
+    pass
+
+@fs_bp.route('/fs/md5/status')
+def file_md5_status():
+    pass
+
+@fs_bp.route('/fs/md5/stop')
+def file_md5_stop():
+    pass
+
+@fs_bp.route('/fs/permission/check')
+def file_write_permission_check():
+    pass
+
+
+@fs_bp.route('/fs/share/info')
+def file_share_info():
+    pass
+
+@fs_bp.route('/fs/share/list')
+def file_share_list():
+    pass
+
+@fs_bp.route('/fs/share/create')
+def file_share_create():
+    pass
+
+@fs_bp.route('/fs/share/delete')
+def file_share_delete():
+    pass
+
+@fs_bp.route('/fs/share/clean')
+def file_share_clean():
+    pass
+
+@fs_bp.route('/fs/cpmv/start')
+def file_copyormove_start():
+    pass
+
+@fs_bp.route('/fs/cpmv/status')
+def file_cpmv_status():
+    pass
+
+@fs_bp.route('/fs/cpmv/stop')
+def file_cpmv_stop():
+    pass
+
+
+

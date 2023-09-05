@@ -551,7 +551,7 @@ def FileSearchStart(folder_path, recursive='true', pattern = None, extension= No
 
 def FileSearchList(taskid, offset=0, limit=0, sorted_by='name', sort_direction='asc', pattern='', filetype='all', additional=''):
     cgi = 'entry.cgi'
-    api = '=SYNO.FileStation.Search'
+    api = 'SYNO.FileStation.Search'
     version = 2
     method = 'list'
     ext = {
@@ -692,7 +692,7 @@ def FileFavoriteEdit(path, name):
     resp = session.get(uri)
     return resp.json()
 
-def FIleFavoriteReplaceAll(path, name):
+def FileFavoriteReplaceAll(path, name):
     cgi = 'entry.cgi'
     api = 'SYNO.FileStation.Favorite'
     version = 2
