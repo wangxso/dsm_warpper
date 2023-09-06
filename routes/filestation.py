@@ -1,6 +1,8 @@
 from flask import request, Blueprint
 from api import file_station
 from entities.response import std_resp, std_error
+from errors.handler import handler_filestation
+from loguru import logger
 fs_bp = Blueprint('fs', __name__)
 
 @fs_bp.route("/fs/create", methods=['POST'])
@@ -15,7 +17,11 @@ def create_folder():
     if "addtional" in data:
         addtional = data['addtional']
     
-    return file_station.CreateFolder(folder_path, folder_name, force_parent, addtional)
+    resp = file_station.CreateFolder(folder_path, folder_name, force_parent, addtional)
+
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route("/fs/rename", methods=['POST'])
 def rename_files_folder():
@@ -29,8 +35,11 @@ def rename_files_folder():
     
     if "search_taskid" in data:
         search_taskid = data['search_taskid']
-
-    return file_station.RenameFileorFolder(path, name, additional, search_taskid)
+    
+    resp =  file_station.RenameFileorFolder(path, name, additional, search_taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route("/fs/nbdelete", methods=['POST'])
 def NonBlockingDelete():
@@ -48,15 +57,24 @@ def NonBlockingDelete():
     if 'search_taskid' in data:
         search_taskid = data['search_taskid']
     
-    return file_station.NoneBlockingDeleteFolderOrFiles(path, accurate_progress, recursive, search_taskid)
+    resp =  file_station.NoneBlockingDeleteFolderOrFiles(path, accurate_progress, recursive, search_taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route("/fs/delete/status/<taskid>", methods=['GET'])
 def get_delete_status_one(taskid):
-    return file_station.GetDeleteStatus(taskid)
+    resp =  file_station.GetDeleteStatus(taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/delete/stop/<taskid>', methods=['GET'])
 def stop_delete_one(taskid):
-    return file_station.StopDelete(taskid)
+    resp =  file_station.StopDelete(taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/delete', methods=['POST'])
 def delete():
@@ -70,15 +88,24 @@ def delete():
     if 'search_taskid' in data:
         search_taskid = data['search_taskid']
 
-    return file_station.DeleteFolderOrFiles(path, recursive, search_taskid)
+    resp =  file_station.DeleteFolderOrFiles(path, recursive, search_taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/list/<page>/<size>')
 def folder_list(page, size):
-    return file_station.FolderList()
+    resp =  file_station.FolderList()
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/file/list/<path>', methods=['GET'])
 def file_list(path):
-    return file_station.FileList(path)
+    resp = file_station.FileList(path)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/file/upload', methods=['POST'])
 def fille_upload():
@@ -95,21 +122,25 @@ def fille_upload():
     if not target:
         return std_resp(code=-1, success=False, data={'errors': 'Upload path not specified'})
     
-    data = file_station.FileUpload(request.files, target)
-    return std_resp(data=data)
+    resp = file_station.FileUpload(request.files, target)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/file/download')
 def file_download():
     path = request.form.get('path', '')
     resp = file_station.FileDownload(path)
-    if not resp:
-        return std_resp(code=-1, success=False, data={'errors': 'File Not Found.'})
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/file/info')
 def file_info():
     resp = file_station.FileInfo()
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/extract/start')
 def file_extract_start():
@@ -126,16 +157,24 @@ def file_extract_start():
     if dest_folder_path == '':
         return std_resp(code=-1, success=False, data={'errors': 'Dest Folder Path Needed.'})
     
-    return std_resp(data=file_station.FileExtractStart(file_path, dest_folder_path, overwrite, keep_dir, create_subfolder, codepage, password, item_id))
-
+    resp = file_station.FileExtractStart(file_path, dest_folder_path, overwrite, keep_dir, create_subfolder, codepage, password, item_id)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/extract/status/<taskid>')
 def file_extract_status(taskid):
-    return std_resp(data=file_station.FileExtractStatus(taskid))
+    resp = file_station.FileExtractStatus(taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/extract/stop/<taskid>')
 def file_extract_stop(taskid):
-    return std_resp(data=file_station.FileExtractStop(taskid))
+    resp = file_station.FileExtractStop(taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/archive/list')
 def file_archive_list():
@@ -147,9 +186,10 @@ def file_archive_list():
     codepage = request.form.get('codepage', 'chs')
     password = request.form.get('password', '')
     item_id = request.form.get('item_id', '')
-    if filepath == '':
-        return std_resp(code=-1, success=False, data={'errors': 'File Path Needed.'})
-    return std_resp(data=file_station.FileArchiveFilesList(filepath, offset, limit, sort_by, sort_direction, codepage, password, item_id))
+    resp = file_station.FileArchiveFilesList(filepath, offset, limit, sort_by, sort_direction, codepage, password, item_id)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/compress/start')
 def file_compress_start():
@@ -158,25 +198,40 @@ def file_compress_start():
     mode = request.form.get('mode', 'add')
     format = request.form.get('format', 'zip')
     password = request.form.get('password', '')
-    return std_resp(data=file_station.FileCompressStart(path, dest_file_path, mode, format, password))
+    resp = file_station.FileCompressStart(path, dest_file_path, mode, format, password)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/compress/status/<taskid>')
 def file_compress_status(taskid):
-    return std_resp(data=file_station.FileCompressStatus(taskid))
+    resp =  file_station.FileCompressStatus(taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/compress/stop/<taskid>')
 def file_comporess_stop(taskid):
-    return std_resp(data=file_station.FileCompressStop(taskid))
+    resp = file_station.FileCompressStop(taskid)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/task/list/<offset>/<limit>')
 def background_task_list(offset, limit):
-    return std_resp(data=file_station.BackgroundTaskList(offset, limit))
+    resp = file_station.BackgroundTaskList(offset, limit)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/task/clear')
 def background_task_clear_finished():
     data = request.get_json()
     taskid_list = data['taskid_list']
-    return std_resp(data=file_station.BackgroundTaskClearFinished(taskid_list))
+    resp = file_station.BackgroundTaskClearFinished(taskid_list)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/search/start')
 def file_search_start():
@@ -199,7 +254,9 @@ def file_search_start():
                                         size_from, size_to, mtime_from, mtime_to, crtime_from, 
                                         crtime_to, atime_from, atime_to, owner, group)
     
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/search/list')
 def file_search_list():
@@ -213,7 +270,9 @@ def file_search_list():
     additional = request.form.get('additional', '')
     resp = file_station.FileSearchList(taskid, offset, limit, sorted_by, 
                                        sort_direction, pattern, filetype, additional)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 
 @fs_bp.route('/fs/search/stop/<taskid>')
@@ -221,14 +280,18 @@ def file_search_stop(taskid):
     if taskid == '':
         return std_error({'errors': 'Task id is Needed.'})
     resp = file_station.FileSearchStop(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/search/clean/<taskid>')
 def file_search_clean(taskid):
     if taskid == '':
         return std_error({'errors': 'Task id is Needed.'})
     resp = file_station.FileSearchClean(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/virtual/list')
 def file_virtual_list():
@@ -239,7 +302,9 @@ def file_virtual_list():
     sort_direction = request.form.get('sort_direction', 'asc')
     additional= request.form.get('additional', '')
     resp = file_station.VirtualFolderList(type, offset, limit, sort_by, sort_direction, additional)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/favorite/list')
 def file_favorite_list():
@@ -248,7 +313,9 @@ def file_favorite_list():
     status_filter = request.form.get('status_filter', 'all')
     additional = request.form.get('additional', '')
     resp = file_station.FileFavoriteList(offset, limit, status_filter, additional)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 
 @fs_bp.route('/fs/favorite/add')
@@ -257,18 +324,24 @@ def file_favorite_add():
     name = request.form.get('name', '')
     index = request.form.get('index' -1)
     resp = file_station.FileFavoriteAdd(path, name, index)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/favorite/delete')
 def file_favorite_delete():
     path = request.form.get('path', '')
     resp = file_station.FileFavoriteDelete(path)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/favorite/clean')
 def file_favorite_clean():
     resp = file_station.FileFavoriteClearBroken()
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/favorite/edit')
 def file_favorite_edit():
@@ -276,7 +349,9 @@ def file_favorite_edit():
     name = request.form.get('name', '')
 
     resp = file_station.FileFavoriteEdit(path, name)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/favorite/replaceall')
 def file_favorite_replace_all():
@@ -284,7 +359,9 @@ def file_favorite_replace_all():
     name = request.form.get('name', '')
 
     resp = file_station.FileFavoriteReplaceAll(path, name)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/thumb/get')
 def file_thumb_get():
@@ -293,40 +370,54 @@ def file_thumb_get():
     rotate = request.form.get('rotate', 0)
 
     resp = file_station.FileThumbGet(path, size, rotate)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/dirsize/start')
 def file_dirsize_start():
     path = request.form.get('path', '')
     resp = file_station.DirSizeStart(path)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 
 @fs_bp.route('/fs/dirsize/status/<taskid>')
 def file_dirsize_status(taskid):
     resp = file_station.DirSizeStatus(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/dirsize/stop/<taskid>')
 def file_dirsize_stop(taskid):
     resp = file_station.DirSizeStop(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/md5/start')
 def  file_md5_start():
     file_path = request.form.get('file_path')
     resp = file_station.GetMD5TaskStart(file_path)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/md5/status/<taskid>')
 def file_md5_status(taskid):
     resp = file_station.GetMD5TaskStatus(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/md5/stop/<taskid>')
 def file_md5_stop(taskid):
     resp = file_station.GetMD5TaskStop(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/permission/check')
 def file_write_permission_check():
@@ -335,14 +426,18 @@ def file_write_permission_check():
     overwrite = request.form.get('overwrite', None)
     create_only = request.form.get('create_only', 'true')
     resp = file_station.CheckWritePermission(path, filename, overwrite, create_only)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 
 
 @fs_bp.route('/fs/share/info/<id>')
 def file_share_info(id):
     resp = file_station.GetSharedInfo(id)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/share/list')
 def file_share_list():
@@ -352,7 +447,9 @@ def file_share_list():
     sort_direction = request.form.get('sort_direction', 'asc')
     force_clean = request.form.get('force_clean', '')
     resp = file_station.SharedList(offset, limit, sort_by, sort_direction, force_clean)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 
 
@@ -365,17 +462,23 @@ def file_share_create():
     # YYYY-MM-DD set to 0(default), the sharing link is valid immediately after creation.
     data_available = request.form.get('data_available', 0)
     resp = file_station.CreateSharedLink(path, password, data_expired, data_available)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/share/delete/<id>')
 def file_share_delete(id):
     resp = file_station.DeleteSharedLink(id)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/share/clean')
 def file_share_clean():
     resp = file_station.ClearInvalid()
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/cpmv/start')
 def file_copyormove_start():
@@ -387,17 +490,23 @@ def file_copyormove_start():
     search_taskid = request.form.get('search_taskid', None)
     resp = file_station.CopyMoveTaskStart(path, dest_folder_path, overwrite, remove_src, 
                                           accurate_progress, search_taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/cpmv/status/<taskid>')
 def file_cpmv_status(taskid):
     resp = file_station.CopyMoveTaskStatus(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 @fs_bp.route('/fs/cpmv/stop/<taskid>')
 def file_cpmv_stop(taskid):
     resp = file_station.CopyMoveTaskStop(taskid)
-    return std_resp(data=resp)
+    if not resp['success']:
+        return handler_filestation(resp)
+    return std_resp(data=resp['data'])
 
 
 

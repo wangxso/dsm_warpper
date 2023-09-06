@@ -944,7 +944,8 @@ operation.
 
 '''
 
-def CopyMoveTaskStart(path, dest_folder_path, overwrite=None, remove_src='false', accurate_progress='true', search_taskid=None):
+def CopyMoveTaskStart(path, dest_folder_path, overwrite=None, remove_src='false', 
+                      accurate_progress='true', search_taskid=None):
     cgi = 'entry.cgi'
     api = 'SYNO.FileStation.CopyMove'
     version = 3
