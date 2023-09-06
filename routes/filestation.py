@@ -297,65 +297,107 @@ def file_thumb_get():
 
 @fs_bp.route('/fs/dirsize/start')
 def file_dirsize_start():
-    pass
+    path = request.form.get('path', '')
+    resp = file_station.DirSizeStart(path)
+    return std_resp(data=resp)
 
 
-@fs_bp.route('/fs/dirsize/status')
-def file_dirsize_status():
-    pass
+@fs_bp.route('/fs/dirsize/status/<taskid>')
+def file_dirsize_status(taskid):
+    resp = file_station.DirSizeStatus(taskid)
+    return std_resp(data=resp)
 
-@fs_bp.route('/fs/dirsize/stop')
-def file_dirsize_stop():
-    pass
+@fs_bp.route('/fs/dirsize/stop/<taskid>')
+def file_dirsize_stop(taskid):
+    resp = file_station.DirSizeStop(taskid)
+    return std_resp(data=resp)
 
 @fs_bp.route('/fs/md5/start')
 def  file_md5_start():
-    pass
+    file_path = request.form.get('file_path')
+    resp = file_station.GetMD5TaskStart(file_path)
+    return std_resp(data=resp)
 
-@fs_bp.route('/fs/md5/status')
-def file_md5_status():
-    pass
+@fs_bp.route('/fs/md5/status/<taskid>')
+def file_md5_status(taskid):
+    resp = file_station.GetMD5TaskStatus(taskid)
+    return std_resp(data=resp)
 
-@fs_bp.route('/fs/md5/stop')
-def file_md5_stop():
-    pass
+@fs_bp.route('/fs/md5/stop/<taskid>')
+def file_md5_stop(taskid):
+    resp = file_station.GetMD5TaskStop(taskid)
+    return std_resp(data=resp)
 
 @fs_bp.route('/fs/permission/check')
 def file_write_permission_check():
-    pass
+    path = request.form.get('path', '')
+    filename = request.form.get('filename', '')
+    overwrite = request.form.get('overwrite', None)
+    create_only = request.form.get('create_only', 'true')
+    resp = file_station.CheckWritePermission(path, filename, overwrite, create_only)
+    return std_resp(data=resp)
 
 
-@fs_bp.route('/fs/share/info')
-def file_share_info():
-    pass
+
+@fs_bp.route('/fs/share/info/<id>')
+def file_share_info(id):
+    resp = file_station.GetSharedInfo(id)
+    return std_resp(data=resp)
 
 @fs_bp.route('/fs/share/list')
 def file_share_list():
-    pass
+    offset = request.form.get('offset', 0)
+    limit = request.form.get('limit', 0)
+    sort_by = request.form.get('sort_by', 'name')
+    sort_direction = request.form.get('sort_direction', 'asc')
+    force_clean = request.form.get('force_clean', '')
+    resp = file_station.SharedList(offset, limit, sort_by, sort_direction, force_clean)
+    return std_resp(data=resp)
+
+
 
 @fs_bp.route('/fs/share/create')
 def file_share_create():
-    pass
+    path = request.form.get('path', '')
+    password = request.form.get('password', '')
+    # YYYY-MM-DD n set to 0 (default), the sharing link is permanent.
+    data_expired = request.form.get('data_expired', 0)
+    # YYYY-MM-DD set to 0(default), the sharing link is valid immediately after creation.
+    data_available = request.form.get('data_available', 0)
+    resp = file_station.CreateSharedLink(path, password, data_expired, data_available)
+    return std_resp(data=resp)
 
-@fs_bp.route('/fs/share/delete')
-def file_share_delete():
-    pass
+@fs_bp.route('/fs/share/delete/<id>')
+def file_share_delete(id):
+    resp = file_station.DeleteSharedLink(id)
+    return std_resp(data=resp)
 
 @fs_bp.route('/fs/share/clean')
 def file_share_clean():
-    pass
+    resp = file_station.ClearInvalid()
+    return std_resp(data=resp)
 
 @fs_bp.route('/fs/cpmv/start')
 def file_copyormove_start():
-    pass
+    path = request.form.get('path', '')
+    dest_folder_path = request.form.get('dest', '')
+    overwrite = request.form.get('overwrite', None)
+    remove_src = request.form.get('remove_src', 'false')
+    accurate_progress = request.form.get('accurate_progress', 'true')
+    search_taskid = request.form.get('search_taskid', None)
+    resp = file_station.CopyMoveTaskStart(path, dest_folder_path, overwrite, remove_src, 
+                                          accurate_progress, search_taskid)
+    return std_resp(data=resp)
 
-@fs_bp.route('/fs/cpmv/status')
-def file_cpmv_status():
-    pass
+@fs_bp.route('/fs/cpmv/status/<taskid>')
+def file_cpmv_status(taskid):
+    resp = file_station.CopyMoveTaskStatus(taskid)
+    return std_resp(data=resp)
 
-@fs_bp.route('/fs/cpmv/stop')
-def file_cpmv_stop():
-    pass
+@fs_bp.route('/fs/cpmv/stop/<taskid>')
+def file_cpmv_stop(taskid):
+    resp = file_station.CopyMoveTaskStop(taskid)
+    return std_resp(data=resp)
 
 
 

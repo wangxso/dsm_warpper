@@ -879,7 +879,7 @@ def GetSharedInfo(id):
     resp = session.get(uri)
     return resp.json()
 
-def SharedList(offset, limit, sort_by, sort_direction, force_clean):
+def SharedList(offset=0, limit=0, sort_by='name', sort_direction='asc', force_clean='false'):
     cgi = 'entry.cgi'
     api = 'SYNO.FileStation.Sharing'
     version = 3
@@ -895,7 +895,7 @@ def SharedList(offset, limit, sort_by, sort_direction, force_clean):
     resp = session.get(uri)
     return resp.json()
 
-def CreateSharedLink(path, password, data_expired, data_available):
+def CreateSharedLink(path, password=None, data_expired=0, data_available=0):
     cgi = 'entry.cgi'
     api = 'SYNO.FileStation.Sharing'
     version = 3
