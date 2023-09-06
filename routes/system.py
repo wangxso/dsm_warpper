@@ -1,4 +1,6 @@
 from flask import request, Blueprint
+from errors.handler import handle_login_error, handler_system
+from entities.response import std_resp
 from api import system
 
 sys_bp = Blueprint('sys', __name__)
@@ -7,27 +9,45 @@ def login():
     data = request.get_json()
     username = data['username']
     password = data['password']
-    return system.DSMLogin(username, password)
+    resp = system.DSMLogin(username, password)
+    if not resp['success']:
+        return handle_login_error(resp)
+    return std_resp(data=resp['data'])
 
 @sys_bp.route("/sys/logout", methods=['GET'])
 def logout():
-    return system.DSMLogout()
+    resp = system.DSMLogout()
+    if not resp['success']:
+        return handler_system(resp)
+    return std_resp(data=resp['data'])
 
 @sys_bp.route("/sys/info", methods=['GET'])
 def info():
-    return system.DSMInfo()
+    resp = system.DSMInfo()
+    if not resp['success']:
+        return handler_system(resp)
+    return std_resp(data=resp['data'])
 
 @sys_bp.route("/sys/status", methods=['GET'])
 def status():
-    return system.DSMStatus()
+    resp = system.DSMStatus()
+    if not resp['success']:
+        return handler_system(resp)
+    return std_resp(data=resp['data'])
 
 @sys_bp.route("/sys/network", methods=['GET'])
 def network():
-    return system.DSMNetwork()
+    resp = system.DSMNetwork()
+    if not resp['success']:
+        return handler_system(resp)
+    return std_resp(data=resp['data'])
 
 @sys_bp.route("/sys/service", methods=['GET'])
 def service_info():
-    return system.DSMService()
+    resp = system.DSMService()
+    if not resp['success']:
+        return handler_system(resp)
+    return std_resp(data=resp['data'])
 
 @sys_bp.route("/sys/terminal", methods=['POST'])
 def terminal_setting():
@@ -35,4 +55,7 @@ def terminal_setting():
     enablessh = data['enablessh']
     enabletelnet = data['enabletelnet']
     sshport = data['sshport']
-    return system.DSMTerminal(enablessh, enabletelnet, sshport)
+    resp = system.DSMTerminal(enablessh, enabletelnet, sshport)
+    if not resp['success']:
+        return handler_system(resp)
+    return std_resp(data=resp['data'])
