@@ -27,8 +27,8 @@ app.register_blueprint(sys_bp)
 
 
 if __name__ == "__main__":
-    host = '127.0.0.1'
-    port = 5000
+    host = '0.0.0.0'
+    port = 6700
     with app.app_context():
         routes = [str(rule) for rule in app.url_map.iter_rules()]
         for route in routes:
